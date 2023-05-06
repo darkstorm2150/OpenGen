@@ -28,3 +28,6 @@ A25  | Protogen_X8.6                     | OpenGen A24                       | 0
 A26  | HARDblend-nsfw+                   | A25-FINAL                         | 0.85
 A27  | tie's FantasyMix v1               | OpenGen A26                       | 0.85
 A28  | FAD-foto-assisted-diffusion_V0    | OpenGen A27                       | 0.85
+A29  | dreamshaper_5BakedVae             | OpenGen A28                       | 0.95
+
+OpenGen A29 is OpenGen A29-FINAL, The final form has be renamed to OpenGen v1.0
