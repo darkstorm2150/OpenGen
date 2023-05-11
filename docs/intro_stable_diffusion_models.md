@@ -1,4 +1,8 @@
-# Introduction to Stable Diffusion Models
+## <p align="center">Introduction to Stable Diffusion Models</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
+</p>
 
 Welcome to the exciting world of Stable Diffusion Models! If you are new to this concept and are thrilled to learn about it, then you've come to the right place. 
 
