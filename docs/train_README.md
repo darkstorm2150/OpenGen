@@ -412,6 +412,10 @@ After updating the script, there may be cases where the documentation has not ca
 
 - `--persistent_data_loader_workers`
 
-    When specified in a Windows environment, the waiting time between epochs is significantly reduced.
+    Specifying this in a Windows environment significantly reduces the waiting time between epochs.
 
 - `--max_data_loader_n_workers`
+
+    This option sets the number of processes for data loading. Having more processes speeds up data loading and allows for more efficient use of the GPU, but it consumes main memory. By default, it is set to the smaller of either `8` or `the number of CPU concurrent threads - 1`. If you have limited main memory or if the GPU usage rate is around 90% or higher, consider lowering this value to `2` or `1` while monitoring those numbers.
+    
+---CUT---
