@@ -1,4 +1,4 @@
-## <p align="center">Created for Reference on understanding finetuning Stable Diffusion</p>
+## <p align="center">Developed as a Guide to Comprehend the Fine-Tuning of Stable Diffusion Models</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
