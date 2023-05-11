@@ -627,3 +627,148 @@ Adjust the batch size according to your GPU's VRAM capacity. A larger batch size
 If you have multiple training data folders, run the command for each folder separately.
     
 ---CUT---
+Please note that the inference has randomness, so the results may change each time it is executed. To fix the results, specify a random seed with the `--seed` option, such as `--seed 42`.
+
+For other options, please refer to the help with `--help`. Unfortunately, there seems to be no comprehensive documentation on the meaning of the parameters, so you may need to look at the source code.
+
+By default, the caption files are generated with the .caption extension.
+
+![Caption generated folder](https://user-images.githubusercontent.com/52813779/208908845-48a9d36c-f6ee-4dae-af71-9ab462d1459e.png)
+
+For example, the following captions will be attached.
+
+![Caption and image](https://user-images.githubusercontent.com/52813779/208908947-af936957-5d73-4339-b6c8-945a52857373.png)
+
+## Tagging with DeepDanbooru
+
+If you do not want to perform tagging with danbooru tags, please proceed to "Preprocessing of captions and tag information."
+
+Tagging is done with either DeepDanbooru or WD14Tagger. WD14Tagger seems to have better accuracy. If you want to tag with WD14Tagger, please proceed to the next chapter.
+
+### Setting up the environment
+
+Clone DeepDanbooru (https://github.com/KichangKim/DeepDanbooru) into your working folder or download and unzip the zip file. I unzipped the zip file.
+Also, download deepdanbooru-v3-20211112-sgd-e28.zip from the Assets of "DeepDanbooru Pretrained Model v3-20211112-sgd-e28" on DeepDanbooru's Releases page (https://github.com/KichangKim/DeepDanbooru/releases) and unzip it into the DeepDanbooru folder.
+
+Download from the following link. Click Assets to open and download from there.
+
+![DeepDanbooru download page](https://user-images.githubusercontent.com/52813779/208909417-10e597df-7085-41ee-bd06-3e856a1339df.png)
+
+Please set up the directory structure like this:
+
+![DeepDanbooru directory structure](https://user-images.githubusercontent.com/52813779/208909486-38935d8b-8dc6-43f1-84d3-fef99bc471aa.png)
+
+Install the necessary libraries for Diffusers' environment. Move to the DeepDanbooru folder and install (I think this will effectively only add tensorflow-io).
+
+```
+pip install -r requirements.txt
+```
+
+Next, install DeepDanbooru itself.
+
+```
+pip install .
+```
+
+Now the environment for tagging is ready.
+
+### Performing tagging
+
+Move to the DeepDanbooru folder and run deepdanbooru to perform tagging.
+
+```
+deepdanbooru evaluate <teacher data folder> --project-path deepdanbooru-v3-20211112-sgd-e28 --allow-folder --save-txt
+```
+
+If you placed the teacher data in the parent folder train_data, it would look like this:
+
+```
+deepdanbooru evaluate ../train_data --project-path deepdanbooru-v3-20211112-sgd-e28 --allow-folder --save-txt
+```
+
+Tag files are created in the same directory as the teacher data images, with the same file name and a .txt extension. Since they are processed one by one, it is relatively slow.
+
+If you have multiple teacher data folders, please run for each folder.
+
+The files are generated as follows:
+
+![Generated files of DeepDanbooru](https://user-images.githubusercontent.com/52813779/208909855-d21b9c98-f2d3-4283-8238-5b0e5aad6691.png)
+
+Tags are attached like this (with a lot of information...).
+
+![DeepDanbooru tags and image](https://user-images.githubusercontent.com/52813779/208909908-a7920174-266e-48d5-aaef-940aba709519.png)
+
+## Tagging with WD14Tagger
+
+This is the procedure for using WD14Tagger instead of DeepDanbooru.
+
+We will use the tagger used in Automatic1111's WebUI. I referred to the information on this GitHub page (https://github.com/toriato/stable-diffusion-webui-wd14-tagger#mrsmilingwolfs-model-aka-waifu-diffusion-14-tagger).
+
+The necessary modules are already installed in the initial environment setup. Also, the weights will be automatically downloaded from Hugging Face.
+
+### Performing tagging
+
+Run the script to perform tagging.
+```
+python tag_images_by_wd14_tagger.py --batch_size <batch size> <teacher data folder>
+```
+
+If the teacher data is placed in the parent folder train_data, it would look like this:
+```
+python tag_images_by_wd14_tagger.py --batch_size 4 ..\train_data
+```
+
+On the first launch, the model file will be automatically downloaded to the wd14_tagger_model folder (you can change the folder with an option). It will look like this:
+
+![Downloaded files](https://user-images.githubusercontent.com/52813779/208910447-f7eb0582-90d6-49d3-a666-2b508c7d1842.png)
+
+Tag files are created in the same directory as the teacher data images, with the same file name and a .txt extension.
+
+![Generated tag files](https://user-images.githubusercontent.com/52813779/208910534-ea514373-1185-4b7d-9ae3-61eb50bc294e.png)
+
+![Tags and image](https://user-images.githubusercontent.com/52813779/208910599-29070c15-7639-474f-b3e4-06bd5a3df29e.png)
+
+You can specify the threshold for tagging with the thresh option. The default is 0.35, the same as WD14Tagger's sample. Lowering the value will result in more tags being attached, but the accuracy will decrease.
+
+Please adjust the batch size according to your GPU's VRAM capacity. The larger the size, the faster the process. You can change the tag file extension with the caption_extension option. The default is .txt.
+
+You can specify the model's save folder with the model_dir option.
+
+If you specify the force_download option, the model will be redownloaded even if the save folder exists.
+
+If you have multiple teacher data folders, please run for each folder.
+
+## Preprocessing captions and tag information
+
+To make it easier to process captions and tags with a script, they are combined into a single file as metadata.
+
+### Preprocessing captions
+
+To include captions in metadata, execute the following in your working folder (if you don't want to use captions for learning, you don't need to run this) (actually, write in one line, same for below). Specify the image file location in full path with the `--full_path` option. If you omit this option, the path will be recorded as a relative path, but you will need to specify the folder separately in the `.toml` file.
+
+```
+python merge_captions_to_metadata.py --full_path <teacher data folder>
+    --in_json <input metadata file name> <metadata file name>
+```
+
+The metadata file name can be any name.
+If the teacher data is train_data, there is no input metadata file, and the metadata file is meta_cap.json, it looks like this:
+
+```
+python merge_captions_to_metadata.py --full_path train_data meta_cap.json
+```
+
+You can specify the caption extension with the caption_extension option.
+
+If you have multiple teacher data folders, specify the full_path argument and run for each folder.
+
+```
+python merge_captions_to_metadata.py --full_path
+    train_data1 meta_cap1.json
+python merge_captions_to_metadata.py --full_path --in_json meta_cap1.json
+    train_data2 meta_cap2.json
+```
+
+If you omit the in_json, the destination metadata file will be read and overwritten if it exists.
+
+__*It is safer to change
