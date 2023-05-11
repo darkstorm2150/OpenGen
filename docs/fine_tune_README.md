@@ -1,8 +1,10 @@
+## <p align="center">Created for Reference on understanding finetuning Stable Diffusion</p>
 
-This a ChatGPT-4 English Conversion of kohya-ss (fine_tune_README_ja.md)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
+</p>
 
-### Created for Reference on understanding finetuning Stable Diffusion
-
+<h3><p align="center">This a ChatGPT-4 English Conversion of kohya-ss (fine_tune_README_ja.md)</p></h3>
 
 This is a fine-tuning method proposed by NovelAI, which is compatible with their learning approach, automatic captioning, tagging, and a Windows + VRAM 12GB (for SD v1.x) environment. Fine-tuning in this context refers to training the model using images and captions (LoRA, Textual Inversion, and Hypernetworks are not included).
 
