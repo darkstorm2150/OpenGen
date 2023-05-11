@@ -120,10 +120,150 @@ These options are related to dataset settings and cannot be written in `datasets
 | `resolution` | `256`, `[512, 512]` | o | o |
 
 * `batch_size`
-    * Equivalent to the command-line argument `--train_batch_size`.
+    * Equivalent to the command line argument `--train_batch_size`.
 
-These settings are fixed for each dataset.
-In other words, subsets belonging to the dataset share these settings.
-For example, if you want to prepare different resolution datasets, you can set different resolutions by defining them as separate datasets, as shown in the previous example.
+These settings are fixed for each dataset. In other words, subsets belonging to the same dataset will share these settings. For example, if you want to prepare datasets with different resolutions, you can define them as separate datasets, as shown in the example above, and set different resolutions.
 
-#### Subset-specific Options
+#### Subset-specific options
+
+These are options related to the configuration of subsets.
+
+| Option name | Example | `[general]` | `[[datasets]]` | `[[dataset.subsets]]` |
+| ---- | ---- | ---- | ---- | ---- |
+| `color_aug` | `false` | o | o | o |
+| `face_crop_aug_range` | `[1.0, 3.0]` | o | o | o |
+| `flip_aug` | `true` | o | o | o |
+| `keep_tokens` | `2` | o | o | o |
+| `num_repeats` | `10` | o | o | o |
+| `random_crop` | `false` | o | o | o |
+| `shuffle_caption` | `true` | o | o | o |
+
+* `num_repeats`
+    * Specifies the number of times the images in the subset are repeated. It corresponds to `--dataset_repeats` in fine-tuning, but `num_repeats` can be specified for any learning method.
+
+### Options exclusive to DreamBooth method
+
+The options for the DreamBooth method exist only for subset-specific options.
+
+#### Subset-specific options
+
+These are options related to the configuration of subsets in the DreamBooth method.
+
+| Option name | Example | `[general]` | `[[datasets]]` | `[[dataset.subsets]]` |
+| ---- | ---- | ---- | ---- | ---- |
+| `image_dir` | `‘C:\hoge’` | - | - | o (required) |
+| `caption_extension` | `".txt"` | o | o | o |
+| `class_tokens` | `“sks girl”` | - | - | o |
+| `is_reg` | `false` | - | - | o |
+
+Please note that the `image_dir` must specify a path where the image files are placed directly. In the traditional DreamBooth method, images needed to be placed in subdirectories, but this is not compatible with that specification. Also, even if you name the folder like `5_cat`, the repetition count and class name of the images will not be reflected. If you want to set these individually, you need to explicitly specify `num_repeats` and `class_tokens`.
+
+* `image_dir`
+    * Specifies the path of the image directory. This is a required option.
+    * Images must be placed directly in the directory.
+* `class_tokens`
+    * Sets the class tokens.
+    * It will be used during training only if there is no corresponding caption file for the image. The determination of whether to use it is made on a per-image basis. If you do not specify `class_tokens` and no caption file is found, an error will occur.
+* `is_reg`
+    * Specifies whether the images in the subset are for normalization or not. If not specified, it is treated as `false`, meaning the images are not for normalization.
+
+### Options exclusive to fine-tuning method
+
+The options for the fine-tuning method exist only for subset-specific options.
+
+#### Subset-specific options
+
+These are options related to the configuration of subsets in the fine-tuning method.
+
+| Option name | Example | `[general]` | `[[datasets]]` | `[[dataset.subsets]]` |
+| ---- | ---- | ---- | ---- | ---- |
+| `image_dir` | `‘C:\hoge’` | - | - | o |
+| `metadata_file` | `'C:\piyo\piyo_md.json'` | - | - | o (required) |
+
+* `image_dir`
+    * Specifies the path of the image directory. Unlike the DreamBooth method, this is not a required specification, but it is recommended to set it.
+        * The situation where you do not need to specify it is when you have executed with `--full_path` when creating the metadata file.
+    * Images must be placed directly in the directory.
+* `metadata_file`
+    * Specifies the path of the metadata file used in the subset. This is a required option.
+        * Equivalent to the command line argument `--in_json`.
+    * Since the specification requires you to specify the metadata file for each subset, it is better to avoid creating metadata that spans directories in a single metadata file. It is strongly recommended to prepare a metadata file for each image directory and register them as separate subsets.
+
+### Options available when the caption dropout method can be used
+
+Caption dropout method options exist only for subset-specific options. Regardless of whether it is the DreamBooth method or the fine-tuning method, you can specify it if the learning method supports caption dropout.
+
+#### Subset-specific options
+
+These are options related to the configuration of subsets when the caption dropout method can be used.
+
+| Option name | `[general]` | `[[datasets]]` | `[[dataset.subsets]]` |
+| ---- | ---- | ---- | ---- |
+| `caption_dropout_every_n_epochs` | o | o | o |
+| `caption_dropout_rate` | o | o | o |
+| `caption_tag_dropout_rate` | o | o | o |
+
+## Behavior when duplicate subsets exist
+
+For DreamBooth method datasets, subsets with the same `image_dir` are considered duplicates. For fine-tuning method datasets, subsets with the same `metadata_file` are considered duplicates. If duplicate subsets exist within the dataset, the second and subsequent ones will be ignored.
+
+On the other hand, if they belong to different datasets, they are not considered duplicates. For example, if you put subsets with the same `image_dir` in different datasets, they are not considered duplicates. This is useful when you want to train the same images at different resolutions.
+
+```toml
+# If they exist in separate datasets, they are not considered duplicates and both will be used for training
+
+[[datasets]]
+resolution = 512
+
+  [[datasets.subsets]]
+  image_dir = 'C:\hoge'
+
+[[datasets]]
+resolution = 768
+
+  [[datasets.subsets]]
+  image_dir = 'C:\hoge'
+```
+
+## Usage with command line arguments
+
+Some options in the configuration file have overlapping roles with command line arguments.
+
+The following command line argument options are ignored when passing a configuration file:
+
+* `--train_data_dir`
+* `--reg_data_dir`
+* `--in_json`
+
+For the following command line argument options, if they are specified simultaneously in the command line argument and configuration file, the value in the configuration file takes precedence. Unless otherwise stated, the options have the same name.
+
+| Command line argument option | Preferred configuration file option |
+| ---------------------------------- | ---------------------------------- |
+| `--bucket_no_upscale` | |
+| `--bucket_reso_steps` | |
+| `--caption_dropout_every_n_epochs` | |
+| `--caption_dropout_rate` | |
+| `--caption_extension` | |
+| `--caption_tag_dropout_rate` | |
+| `--color_aug` | |
+| `--dataset_repeats` | `num_repeats` |
+| `--enable_bucket` | |
+| `--face_crop_aug_range` | |
+| `--flip_aug` | |
+| `--keep_tokens` | |
+| `--min_bucket_reso` | |
+| `--random_crop` | |
+| `--resolution` | |
+| `--shuffle_caption` | |
+| `--train_batch_size` | `batch_size` |
+
+## Error Handling Guide
+
+Currently, we are using an external library to check whether the configuration file is written correctly or not. However, the system is not well-maintained, and the error messages can be difficult to understand. We plan to address this issue in the future.
+
+As a temporary solution, we provide a list of frequently encountered errors and their solutions. If you encounter an error even though you believe everything is correct, or if you cannot understand the error message, please contact us as it may be a bug.
+
+* `voluptuous.error.MultipleInvalid: required key not provided @ ...`: This error indicates that a required option has not been specified. You might have forgotten to include the option or may have entered the option name incorrectly.
+  * The location of the error is indicated by the `...` part of the message. For example, if you see the error `voluptuous.error.MultipleInvalid: required key not provided @ data['datasets'][0]['subsets'][0]['image_dir']`, it means that the `image_dir` setting is missing from the 0th `subsets` configuration within the 0th `datasets`.
+* `voluptuous.error.MultipleInvalid: expected int for dictionary value @ ...`: This error indicates that the value format is incorrect. The format of the value is likely incorrect. The `int` part will vary depending on the target option. The "Example Settings" for the options listed in this README may be helpful.
+* `voluptuous.error.MultipleInvalid: extra keys not allowed @ ...`: This error occurs when there are unsupported option names present. You may have entered the option name incorrectly or accidentally included it.
