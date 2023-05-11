@@ -19,4 +19,4 @@ OpenGen is an ongoing project, and I welcome any contributions or feedback from 
 
 ## This repository contains:
 
-* [kohya-ss DreamBooth training guide in english](./docs/fine_tune_README.md)
+* [Kohya-ss's Guide to Training Stable Diffusion Models: The DreamBooth Approach in English](./docs/fine_tune_README.md)
