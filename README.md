@@ -1,3 +1,6 @@
+
+<center><img src="[https://huggingface.co/darkstorm2150/Protogen_x3.4_Official_Release/resolve/main/Protogen_x3.4-512.png](https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo.jpg)" style="height:768px; border-radius: 8%; border: 10px solid #663380; padding-top:0px;" span title="OpenGen"></center>
+
 This repository contains training data for Stable Diffusion.
 
 #### About OpenGen Project
