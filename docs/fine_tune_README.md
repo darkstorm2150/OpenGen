@@ -52,7 +52,7 @@ Please refer to the README of this repository and set up your environment before
 
 ## Data Preparation
 
-Please refer to the [instructions for preparing training data](./train_README-ja.md). Fine-tuning only supports the metadata-based fine-tuning method.
+Please refer to the [instructions for preparing training data](./train_README.md). Fine-tuning only supports the metadata-based fine-tuning method.
 
 ## Executing the Training
 
