@@ -1,6 +1,6 @@
 This is an explanation about learning Textual Inversion (https://textual-inversion.github.io/).
 
-Please also refer to the common documentation on learning (./train_README-ja.md).
+Please also refer to the [common documentation on learning](./docs/train_README.md).
 
 The implementation was greatly inspired by https://github.com/huggingface/diffusers/tree/main/examples/textual_inversion.
 
