@@ -1,4 +1,4 @@
-## <p align="center">This repository contains training data for Stable Diffusion.</p>
+## <p align="center">Advanced Stable Diffusion: Comprehensive ML Training Data with Real-world Applications and Interactive Tutorials</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
