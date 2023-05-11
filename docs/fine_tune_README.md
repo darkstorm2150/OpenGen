@@ -1,7 +1,7 @@
 
 This a ChatGPT-4 English Conversion of kohya-ss (fine_tune_README_ja.md)
 
-Created for Reference on understanding finetuning Stable Diffusion
+### Created for Reference on understanding finetuning Stable Diffusion
 
 
 This is a fine-tuning method proposed by NovelAI, which is compatible with their learning approach, automatic captioning, tagging, and a Windows + VRAM 12GB (for SD v1.x) environment. Fine-tuning in this context refers to training the model using images and captions (LoRA, Textual Inversion, and Hypernetworks are not included).
