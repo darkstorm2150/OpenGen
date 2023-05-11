@@ -1,4 +1,10 @@
-This a ChatGPT-4 English Conversion of kohya-ss (train_README-ja.md)
+## <p align="center">Created for Reference on understanding finetuning Stable Diffusion</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
+</p>
+
+<h3><p align="center">This a ChatGPT-4 English Conversion of kohya-ss (train_README-ja.md)</p></h3>
 
 There may be errors in the description due to document updates.
 
