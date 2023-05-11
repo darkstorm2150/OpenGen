@@ -419,3 +419,99 @@ After updating the script, there may be cases where the documentation has not ca
     This option sets the number of processes for data loading. Having more processes speeds up data loading and allows for more efficient use of the GPU, but it consumes main memory. By default, it is set to the smaller of either `8` or `the number of CPU concurrent threads - 1`. If you have limited main memory or if the GPU usage rate is around 90% or higher, consider lowering this value to `2` or `1` while monitoring those numbers.
     
 ---CUT---
+
+- `--logging_dir` / `--log_prefix`
+
+    These options are related to saving the training logs. Please specify the log saving folder with the `logging_dir` option. Logs in the TensorBoard format will be saved.
+
+    For example, specifying `--logging_dir=logs` will create a `logs` folder in the working directory, and logs will be saved in a datetime folder within it. By specifying the `--log_prefix` option, the specified string will be added before the datetime. Use it for identification purposes, such as `--logging_dir=logs --log_prefix=db_style1_`.
+
+    To view logs in TensorBoard, open a separate command prompt and enter the following in the working directory:
+
+    ```
+    tensorboard --logdir=logs
+    ```
+
+    (I think TensorBoard will be installed along with the environment setup, but if it's not, please install it with `pip install tensorboard`.)
+
+    Then open a browser and access http://localhost:6006/ to view the logs.
+
+- `--log_with` / `--log_tracker_name`
+
+    These options are related to saving the training logs. In addition to `tensorboard`, you can save logs to `wandb`. For more details, please refer to [PR#428](https://github.com/kohya-ss/sd-scripts/pull/428).
+
+- `--noise_offset`
+
+    This option implements the following article: https://www.crosslabs.org//blog/diffusion-with-offset-noise
+    
+    It seems that the quality of the generated images, which are overall dark or bright, may improve. It also appears to be effective in LoRA training. It is recommended to specify a value of about `0.1`.
+
+- `--adaptive_noise_scale` (experimental option)
+
+    This option automatically adjusts the value of the noise offset according to the absolute value of the average of each channel of the latents. It is activated by specifying it simultaneously with `--noise_offset`. The noise offset value is calculated as `noise_offset + abs(mean(latents, dim=(2,3))) * adaptive_noise_scale`. Since the latents are close to a normal distribution, it might be a good idea to specify a value of about 1/10 of the noise offset.
+
+    Negative values can also be specified, and in that case, the noise offset will be clipped to a minimum of 0.
+
+- `--multires_noise_iterations` / `--multires_noise_discount`
+    
+    This option sets the Multi-Resolution Noise (pyramid noise). For more details, please refer to [PR#471](https://github.com/kohya-ss/sd-scripts/pull/471) and this page [Multi-Resolution Noise for Diffusion Model Training](https://wandb.ai/johnowhitaker/multires_noise/reports/Multi-Resolution-Noise-for-Diffusion-Model-Training--VmlldzozNjYyOTU2).
+    
+    Specifying a numeric value for `--multires_noise_iterations` will enable this feature. A value of around 6-10 seems to be suitable. Specify a value of 0.1-0.3 (recommended by the PR author for relatively small datasets such as LoRA training) or around 0.8 (recommended by the original article) for `--multires_noise_discount` (default is 0.3).
+
+- `--debug_dataset`
+
+    By adding this option, you can check the image data and captions that will be used for training before actually starting the training. Press the Esc key to exit and return to the command line. Press the `S` key to advance to the next step (batch) and the `E` key to advance to the next epoch.
+
+    *Note: Images will not be displayed in Linux environments, including Colab.
+
+- `--vae`
+
+    When you specify either a Stable Diffusion checkpoint, VAE checkpoint file, or Diffusers model or VAE (both local or Hugging Face model IDs are acceptable) in the `vae` option, the VAE will be used for training (during latents caching or latents acquisition). 
+
+    In DreamBooth and fine-tuning, the saved model will be a model that incorporates this VAE.
+
+- `--cache_latents` / `--cache_latents_to_disk`
+
+    Caches the VAE output to main memory to reduce VRAM usage. This disables the use of augmentations other than `flip_aug`. It also slightly speeds up overall training time.
+
+    By specifying `cache_latents_to_disk`, the cache will be saved to disk. The cache will still be effective even if the script is terminated and restarted.
+
+- `--min_snr_gamma`
+
+    Specifies the Min-SNR Weighting strategy. For more details, please refer to [this link](https://github.com/kohya-ss/sd-scripts/pull/308). The recommended value in the paper is `5`.
+
+## Settings for saving models
+
+- `--save_precision`
+
+    This option specifies the data precision when saving. By specifying one of float, fp16, or bf16 in the `save_precision` option, the model will be saved in that format (this does not apply when saving a Diffusers format model in DreamBooth or fine-tuning). Use this when you want to reduce the size of the model.
+
+- `--save_every_n_epochs` / `--save_state` / `--resume`
+
+    By specifying a numeric value for the `save_every_n_epochs` option, the model will be saved at each specified epoch during training.
+
+    When specifying the `save_state` option at the same time, the training state including the optimizer and other states will also be saved (although the model can be resumed from the saved state, this can be expected to improve accuracy and shorten training time). The saved state will be stored in a folder.
+    
+    The training state is output as a folder named `<output_name>-??????-state` (where ?????? is the epoch number) in the saved location. Please use this option during long-lasting training sessions.
+
+    To resume training from a saved state, use the `resume` option. Specify the folder of the training state (not the `output_dir`, but the state folder inside it).
+
+    Please note that due to the Accelerator specification, the epoch numbers and global steps are not saved, so they will start from 1 again when resumed.
+
+- `--save_every_n_steps`
+
+    By specifying a numeric value for the `save_every_n_steps` option, the model will be saved at each specified step during training. It can be specified simultaneously with `save_every_n_epochs`.
+
+- `--save_model_as` (only for DreamBooth and fine-tuning)
+
+    You can choose the model save format from `ckpt, safetensors, diffusers, diffusers_safetensors`.
+    
+    Specify it like `--save_model_as=safetensors`. If you load a Stable Diffusion format (ckpt or safetensors) and save it in the Diffusers format, the missing information will be supplemented by downloading v1.5 or v2.1 information from Hugging Face.
+
+- `--huggingface_repo_id` etc.
+
+    If `huggingface_repo_id` is specified, the model will be uploaded to HuggingFace at the same time as saving. Please be careful when handling access tokens (refer to HuggingFace's documentation).
+
+    Specify other arguments like this:
+
+    -   `--huggingface_repo_id "your-hf-name/your-model" --huggingface_path_in_repo "path" --huggingface_repo_type model --huggingface_repo_visibility private --huggingface_token hf_YourAccessTokenHere`
