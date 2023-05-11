@@ -171,3 +171,247 @@ You can start training by simply changing the following. The parts not specifica
 4. Metadata file name
 
     Specify the metadata file created using the method described later.
+---CUT---
+## Step 3: Learning
+
+Please conduct the learning process based on each document.
+
+# Brief explanations of terms used in learning
+
+These explanations are simplified, and I don't fully understand every detail, so please research further on your own.
+
+## Fine-tuning
+
+This term refers to the process of training and adjusting a model. Fine-tuning can have different meanings depending on the context. In a narrow sense, fine-tuning in the case of Stable Diffusion means training the model on images and captions. DreamBooth is a specific method of fine-tuning in this narrow sense. In a broader sense, fine-tuning includes methods such as LoRA, Textual Inversion, and Hypernetworks, and encompasses all aspects of model training.
+
+## Steps
+
+Roughly speaking, one step involves performing calculations on the training data once. One step is defined as "feeding the captions of the training data into the current model, comparing the resulting images with the images in the training data, and slightly modifying the model to make it closer to the training data."
+
+## Batch size
+
+The batch size is a value that specifies how many data points are calculated together in one step. By calculating data points together, the speed of the process is relatively improved. Generally, it is believed that a larger batch size leads to higher accuracy.
+
+The total number of data points used in training is the product of the batch size and the number of steps. Therefore, if you increase the batch size, you should reduce the number of steps.
+
+However, for example, "1,600 steps with a batch size of 1" and "400 steps with a batch size of 4" will not produce the same results. With the same learning rate, the latter is generally more prone to undertraining. You may need to adjust the learning rate slightly (e.g., `2e-6`) or increase the number of steps to 500 to compensate.
+
+Increasing the batch size consumes more GPU memory. If you run out of memory, you will encounter errors, and if you are on the edge of running out, the training speed will decrease. It is a good idea to adjust the batch size while monitoring the memory usage in the Task Manager or with the `nvidia-smi` command.
+
+Note that a "batch" is a unit of data.
+
+## Learning rate
+
+Roughly speaking, the learning rate indicates how much the model changes at each step. A larger value speeds up the learning process but may cause the model to change too much, resulting in a broken model or failure to reach an optimal state. A smaller value slows down the learning process and may still fail to reach an optimal state.
+
+The learning rate varies significantly for fine-tuning, DreamBooth, and LoRA, as well as for the training data, the model to be trained, and the batch size and number of steps. Start with a general value and adjust it based on the learning progress.
+
+By default, the learning rate is constant throughout the training process. The learning rate can change depending on the scheduler specified, which may affect the results.
+
+## Epoch
+
+An epoch is completed when the training data has been processed once (i.e., when the data has made one round). If you specify a number of repetitions, one epoch is completed after the repeated data has made one round.
+
+The number of steps in one epoch is generally `number of data points / batch size`. However, with Aspect Ratio Bucketing, the number of steps increases slightly (since different bucket data cannot be combined into the same batch, the number of steps increases).
+
+## Aspect Ratio Bucketing
+
+Stable Diffusion v1 is trained at 512x512 resolution, but it also trains at other resolutions such as 256x1024 and 384x640. This reduces the amount of trimming and allows for more accurate learning of the relationship between captions and images.
+
+Furthermore, it is no longer necessary to standardize the aspect ratio of image data in advance, as any resolution can be used for training.
+
+You can enable or disable this feature in the settings. In the examples of configuration files provided so far, it is enabled (`true` is set).
+
+Training resolutions are created and adjusted in increments of 64 pixels (default, changeable) in width and height, within the range that does not exceed the area (i.e., memory usage) of the specified resolution.
+
+In machine learning, it is common to standardize input sizes, but there is no particular constraint on this, and it is actually sufficient to standardize batch sizes. NovelAI's bucketing seems to mean pre-classifying the training data by learning resolution according to the aspect ratio. By creating batches from images within each bucket, the batch image size is standardized.
+
+# Previous specification format (specifying via command line without using a configuration file)
+
+This method involves specifying options directly from the command line without using a `.toml` file. There are DreamBooth class+identifier methods, DreamBooth caption methods, and fine-tuning methods.
+
+## DreamBooth, class+identifier method
+
+Create a folder for the training images. __Within this folder__, create directories named as follows:
+
+```
+<number of repetitions>_<identifier> <class>
+```
+
+Don't forget the underscore (_) between them.
+
+For example, if you want to train with the "sls frog" prompt and repeat the data 20 times, the directory will be named "20_sls frog". The structure will look like this:
+
+![image](https://user-images.githubusercontent.com/52813779/210770636-1c851377-5936-4c15-90b7-8ac8ad6c2074.png)
+
+### Training with multiple classes and multiple targets (identifiers)
+
+To train with multiple classes or targets, simply prepare multiple folders in the format "number of repetitions_<identifier> <class>" within the training image folder, and multiple folders in the format "number of repetitions_<class>" within the regularization image folder.
+
+For example, if you want to train with both "sls frog" and "cpc rabbit" prompts, the structure will look like this:
+
+![image](https://user-images.githubusercontent.com/52813779/210777933-a22229db-b219-4cd8-83ca-e87320fc4192.png)
+
+If there is only one class with multiple targets, you only need one regularization image folder. For example, if there are characters A and B in the 1girl class, do the following:
+
+- train_girls
+  - 10_sls 1girl
+  - 10_cpc 1girl
+- reg_girls
+  - 1_1girl
+
+### Step 2: Preparing regularization images
+
+This step is for when you want to use regularization images.
+
+Create a folder for regularization images. __Within this folder__, create a directory named as follows:
+
+```
+<number of repetitions>_<class>
+```
+
+For example, if you want to train with the "frog" prompt and not repeat the data (only use it once), the structure will look like this:
+
+![image](https://user-images.githubusercontent.com/52813779/210770897-329758e5-3675-49f1-b345-c135f1725832.png)
+
+### Step 3: Executing the learning process
+
+Run the respective learning scripts. Use the `--train_data_dir` option to specify the parent folder of the training data (not the folder containing the images), and the `--reg_data_dir` option to specify the parent folder of the regularization images (not the folder containing the images).
+
+## DreamBooth, caption method
+
+By placing files with the same file name as the images and with the .caption extension (changeable with options) in the training image and regularization image folders, the script will read the captions from those files and use them for training.
+
+Please note that the folder names (identifier class) will not be used for training these images.
+
+The caption file extension is .caption by default, but it can be changed using the `--caption_extension` option in the learning script. The `--shuffle_caption` option allows you to shuffle the comma-separated parts of the caption during training.
+
+---CUT---
+## Fine-tuning method
+
+The process of creating metadata is the same as when using a configuration file. Specify the metadata file with the `in_json` option.
+
+# Sample output during training
+
+You can check the progress of the training by generating images with the model during training. Specify the following options in the training script:
+
+- `--sample_every_n_steps` / `--sample_every_n_epochs`
+
+    Specify the number of steps or epochs for sample output. Samples will be output every specified number. If both are specified, the number of epochs will take precedence.
+
+- `--sample_prompts`
+
+    Specify the file containing the prompts for sample output.
+
+- `--sample_sampler`
+
+    Specify the sampler to be used for sample output. You can choose from `'ddim', 'pndm', 'heun', 'dpmsolver', 'dpmsolver++', 'dpmsingle', 'k_lms', 'k_euler', 'k_euler_a', 'k_dpm_2', 'k_dpm_2_a'`.
+
+To generate sample output, you need to prepare a text file with prompts written in advance. Write one prompt per line.
+
+For example, the following:
+
+```txt
+# prompt 1
+masterpiece, best quality, 1girl, in white shirts, upper body, looking at viewer, simple background --n low quality, worst quality, bad anatomy, bad composition, poor, low effort --w 768 --h 768 --d 1 --l 7.5 --s 28
+
+# prompt 2
+masterpiece, best quality, 1boy, in business suit, standing at street, looking back --n low quality, worst quality, bad anatomy, bad composition, poor, low effort --w 576 --h 832 --d 2 --l 5.5 --s 40
+```
+
+Lines starting with `#` are treated as comments. You can specify options for the generated image with " `--` + lowercase letter", such as `--n`. The following can be used:
+
+- `--n` Treat everything until the next option as a negative prompt.
+- `--w` Specify the width of the generated image.
+- `--h` Specify the height of the generated image.
+- `--d` Specify the seed for the generated image.
+- `--l` Specify the CFG scale for the generated image.
+- `--s` Specify the number of steps during generation.
+
+# Commonly used options across scripts
+
+After updating the script, there may be cases where the documentation has not caught up. In that case, check the available options with the `--help` option.
+
+## Specifying the model to be used for training
+
+- `--v2` / `--v_parameterization`
+
+    If you want to use Hugging Face's stable-diffusion-2-base or its fine-tuned model as the target model for training (models that are instructed to use `v2-inference.yaml` during inference), specify the `--v2` option. If you want to use stable-diffusion-2 or 768-v-ema.ckpt and their fine-tuned models (models that are instructed to use `v2-inference-v.yaml` during inference), specify both the `--v2` and `--v_parameterization` options.
+
+    The main differences in Stable Diffusion 2.0 are:
+
+    1. Tokenizer used
+    2. Text Encoder and output layer used (2.0 uses the second-to-last layer)
+    3. Output dimension of Text Encoder (768->1024)
+    4. U-Net structure (such as the number of heads in CrossAttention)
+    5. v-parameterization (sampling method seems to have changed)
+
+    The base version adopts 1-4, while the non-base version (768-v) adopts 1-5. The v2 option enables 1-4, and the v_parameterization option enables 5.
+
+- `--pretrained_model_name_or_path`
+
+    Specifies the base model for additional training. You can specify Stable Diffusion checkpoint files (.ckpt or .safetensors), Diffusers model directories on your local disk, or Diffusers model IDs (such as "stabilityai/stable-diffusion-2").
+
+## Training settings
+
+- `--output_dir`
+
+    Specifies the folder where the trained model will be saved.
+
+- `--output_name`
+
+    Specifies the file name of the model without the extension.
+
+- `--dataset_config`
+
+    Specifies the `.toml` file containing the dataset settings.
+
+- `--max_train_steps` / `--max_train_epochs`
+
+    Specifies the number of training steps or epochs. If both are specified, the number of epochs takes precedence.
+
+- `--mixed_precision`
+
+    Uses mixed precision (mixed accuracy) for training to save memory. Specify as `--mixed_precision="fp16"`. Compared to no mixed precision (default), the accuracy may be lower, but the GPU memory required for training will be significantly reduced.
+
+    (For RTX 30 series and later, you can also specify `bf16`. Please match the settings made to accelerate during environment preparation).
+
+- `--gradient_checkpointing`
+
+    Reduces the GPU memory required for training by calculating weights in small increments rather than all at once. Turning this on or off does not affect accuracy, but turning it on allows for a larger batch size, which can impact performance.
+
+    Generally, turning it on slows down the speed, but since it allows for a larger batch size, the total training time may actually be faster.
+
+- `--xformers` / `--mem_eff_attn`
+
+    Specifying the xformers option will use xformers' CrossAttention. If you do not have xformers installed, or if it causes an error (depending on the environment, such as when `mixed_precision="no"`), you can specify the `mem_eff_attn` option instead to use the memory-efficient CrossAttention (slower than xformers).
+
+- `--clip_skip`
+
+    Specify `2` to use the output of the second-to-last layer of the Text Encoder (CLIP). If you specify 1 or omit the option, the last layer will be used.
+
+    ※Do not specify this option for SD2.0 training, as it uses the second-to-last layer by default.
+
+    If the target model for training has already been trained to use the second-to-last layer, specifying 2 may be better.
+
+    If not, and the last layer was used, the entire model has been trained with that assumption. In that case, retraining with the second-to-last layer may require a certain amount of training data and a longer training time to achieve desirable results.
+
+- `--max_token_length`
+
+    The default is 75. You can extend the token length to 150 or 225 for training. Specify this option when training with long captions.
+
+    However, since the token extension during training is slightly different from Automatic1111's Web UI (such as splitting specifications), it is recommended to train with 75 if not necessary.
+
+    Like clip_skip, it is assumed that training with a different length than the model's training state will require a certain amount of training data and a longer training time.
+
+- `--weighted_captions`
+
+    When specified, the same weighted captions as Automatic1111's Web UI will be enabled. This can be used for training methods other than "Textual Inversion and XTI". It is also effective for token strings of the DreamBooth method.
+
+    The notation for weighted captions is almost the same as that of the Web UI, with (abc), [abc], (abc:1.23), etc. available. Nesting is also possible. Do not include commas within parentheses, as this will cause the correspondence of parentheses to be incorrect in the shuffle/dropout of prompts.
+
+- `--persistent_data_loader_workers`
+
+    When specified in a Windows environment, the waiting time between epochs is significantly reduced.
+
+- `--max_data_loader_n_workers`
