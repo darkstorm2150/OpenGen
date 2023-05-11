@@ -1,4 +1,4 @@
-This a ChatGPT-4 English Conversion of kohya-ss (fine_tune_README_ja.md)
+## This a ChatGPT-4 English Conversion of kohya-ss (fine_tune_README_ja.md)
 
 # Created for Reference on understanding finetuning Stable Diffusion
 
