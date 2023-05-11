@@ -1,3 +1,5 @@
+This repository contains training data for Stable Diffusion.
+
 #### About OpenGen Project
 
 OpenGen is an AI project focused on creating high-quality images through Stable Diffusion, a deep learning technique that leverages neural networks to generate realistic images. The project aims to provide an open-source solution for researchers and developers to experiment with and build upon.
