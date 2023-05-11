@@ -762,13 +762,112 @@ You can specify the caption extension with the caption_extension option.
 
 If you have multiple teacher data folders, specify the full_path argument and run for each folder.
 
+---CUT---
 ```
-python merge_captions_to_metadata.py --full_path
+python merge_captions_to_metadata.py --full_path 
     train_data1 meta_cap1.json
-python merge_captions_to_metadata.py --full_path --in_json meta_cap1.json
+python merge_captions_to_metadata.py --full_path --in_json meta_cap1.json 
     train_data2 meta_cap2.json
 ```
 
-If you omit the in_json, the destination metadata file will be read and overwritten if it exists.
+If you omit the `in_json` option, the script will read from and overwrite the existing metadata file.
 
-__*It is safer to change
+__*Note: It is safer to change the `in_json` option and the output metadata file for each run.__
+
+### Preprocessing Tags
+
+Similarly, you can also merge tags into the metadata (this step is not necessary if you don't want to use tags for training).
+
+```
+python merge_dd_tags_to_metadata.py --full_path <supervised_data_folder> 
+    --in_json <input_metadata_filename> <output_metadata_filename>
+```
+
+If you have the same directory structure as before, you would read from `meta_cap.json` and write to `meta_cap_dd.json` as follows:
+
+```
+python merge_dd_tags_to_metadata.py --full_path train_data --in_json meta_cap.json meta_cap_dd.json
+```
+
+If you have multiple supervised data folders, execute the script for each folder by specifying the `full_path` argument.
+
+```
+python merge_dd_tags_to_metadata.py --full_path --in_json meta_cap2.json
+    train_data1 meta_cap_dd1.json
+python merge_dd_tags_to_metadata.py --full_path --in_json meta_cap_dd1.json 
+    train_data2 meta_cap_dd2.json
+```
+
+If you omit the `in_json` option, the script will read from and overwrite the existing metadata file.
+
+__*Note: It is safer to change the `in_json` option and the output metadata file for each run.__
+
+### Cleaning Captions and Tags
+
+By this point, both captions and DeepDanbooru tags should be combined in the metadata file. However, automatically generated captions may have inconsistent notation (e.g., girl/girls/woman/women), and tags may contain underscores or ratings (in the case of DeepDanbooru). It is recommended to clean captions and tags using a text editor's replace feature or a similar tool.
+
+There is a script provided for cleaning captions and tags. Edit the script according to your needs and run it as follows:
+
+(No need to specify the supervised data folder. The script will clean all data within the metadata file.)
+
+```
+python clean_captions_and_tags.py <input_metadata_filename> <output_metadata_filename>
+```
+
+Please note that the `--in_json` option is not used in this case. For example:
+
+```
+python clean_captions_and_tags.py meta_cap_dd.json meta_clean.json
+```
+
+This completes the preprocessing of captions and tags.
+
+## Pre-fetching Latents
+
+*Note: This step is not mandatory. You can also train while fetching latents during training. Pre-fetching latents is not possible if you apply `random_crop` or `color_aug` during training (as the images change for each training iteration). In that case, you can proceed with the metadata obtained so far.
+
+By pre-fetching the latent representations of the images and saving them to disk, you can speed up the training process. Additionally, this step performs bucketing (classifying supervised data according to aspect ratio).
+
+In the working folder, enter the following command:
+
+```
+python prepare_buckets_latents.py --full_path <supervised_data_folder>  
+    <input_metadata_filename> <output_metadata_filename> 
+    <fine-tuning_model_name_or_checkpoint> 
+    --batch_size <batch_size> 
+    --max_resolution <resolution_width,height> 
+    --mixed_precision <precision>
+```
+
+For example, if your model is `model.ckpt`, batch size is 4, training resolution is 512x512, and precision is "no" (float32), you would read from `meta_clean.json` and write to `meta_lat.json` as follows:
+
+```
+python prepare_buckets_latents.py --full_path 
+    train_data meta_clean.json meta_lat.json model.ckpt 
+    --batch_size 4 --max_resolution 512,512 --mixed_precision no
+```
+
+The latents will be saved in the supervised data folder as numpy npz files.
+
+You can specify the minimum bucket resolution with the `--min_bucket_reso` option and the maximum with the `--max_bucket_reso` option. The defaults are 256 and 1024, respectively. For example, if you set the minimum size to 384, resolutions like 256x1024 or 320x768 will no longer be used.
+
+If you increase the resolution to, say, 768x768, you might want to set the maximum size to 1280 or similar.
+
+The `--flip_aug` option enables left-right flip augmentation, which can effectively double the amount of data. However, this may not work well for non-symmetrical data (e.g., character appearance or hairstyle).
+
+If you have multiple supervised data folders, execute the script for each folder by specifying the `full_path` argument.
+
+```
+python prepare_buckets_latents.py --full_path  
+    train_data1 meta_clean.json meta_lat1.json model.ckpt 
+    --batch_size 4 --max_resolution 512,512 --mixed_precision no
+
+python prepare_buckets_latents.py --full_path 
+    train_data2 meta_lat1.json meta_lat2.json model.ckpt 
+    --batch_size 4 --max_resolution 512,512 --mixed_precision no
+
+```
+
+It is possible to use the same input and output metadata files, but using separate files is safer.
+
+__*Note: It is safer to change the input and output metadata filenames for each run.__
