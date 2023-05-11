@@ -100,21 +100,74 @@ Generally, it is desirable to prepare about several hundred images (if the numbe
 
 For generated images, usually, match the size of the generated images to the learning resolution (more precisely, the resolution of the bucket, described later).
 
-## Step 2. Describe the configuration file
+## Step 2: Write the configuration file
 
-Create a text file and set the extension to `.toml`. For example, write as follows:
-
-(The parts starting with `#` are comments, so you can copy and paste them as is, or delete them if you don't need them.)
+Create a text file and set the extension to `.toml`. For example, you can write it as follows:
 
 ```toml
 [general]
 enable_bucket = true                        # Whether to use Aspect Ratio Bucketing
 
 [[datasets]]
-resolution = 512                            # Learning resolution
+resolution = 512                            # Training resolution
 batch_size = 4                              # Batch size
 
   [[datasets.subsets]]
-  image_dir = 'C:\hoge'                     # Specify the folder with the learning images
-  class_tokens = 'hoge girl'                # Specify identifier class
-  num_repeats = 10                          # Number of repetitions for learning images
+  image_dir = 'C:\hoge'                     # Specify the folder containing the training images
+  caption_extension = '.caption'            # Caption file extension; change this if using .txt
+  num_repeats = 10                          # Number of repetitions for training images
+
+  # Write the following only when using regularization images. Remove it if not using them.
+  [[datasets.subsets]]
+  is_reg = true
+  image_dir = 'C:\reg'                      # Specify the folder containing the regularization images
+  class_tokens = 'girl'                     # Specify the class
+  num_repeats = 1                           # Number of repetitions for regularization images; 1 is usually sufficient
+```
+
+You can start training by simply changing the following:
+
+1. Training resolution
+2. Batch size
+3. Folder specification
+4. Caption file extension
+
+    Any extension can be specified.
+5. Number of repetitions
+
+## Step 3: Train
+
+Please refer to each document for training.
+
+# Fine-tuning method
+
+## Step 1: Prepare metadata
+
+Metadata is a management file that compiles captions and tags. It is in JSON format with the extension `.json`. The creation method is lengthy, so it is written at the end of this document.
+
+## Step 2: Write the configuration file
+
+Create a text file and set the extension to `.toml`. For example, you can write it as follows:
+
+```toml
+[general]
+shuffle_caption = true
+keep_tokens = 1
+
+[[datasets]]
+resolution = 512                                    # Training resolution
+batch_size = 4                                      # Batch size
+
+  [[datasets.subsets]]
+  image_dir = 'C:\piyo'                             # Specify the folder containing the training images
+  metadata_file = 'C:\piyo\piyo_md.json'            # Metadata file name
+```
+
+You can start training by simply changing the following. The parts not specifically mentioned are the same as DreamBooth and class+identifier methods:
+
+1. Training resolution
+2. Batch size
+3. Folder specification
+4. Metadata file name
+
+    Specify the metadata file created using the method described later.
