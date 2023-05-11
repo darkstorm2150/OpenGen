@@ -502,16 +502,127 @@ After updating the script, there may be cases where the documentation has not ca
 
     By specifying a numeric value for the `save_every_n_steps` option, the model will be saved at each specified step during training. It can be specified simultaneously with `save_every_n_epochs`.
 
-- `--save_model_as` (only for DreamBooth and fine-tuning)
+---CUT---
+- `--save_model_as` (DreamBooth, fine-tuning only)
 
-    You can choose the model save format from `ckpt, safetensors, diffusers, diffusers_safetensors`.
+    Choose the model save format from `ckpt, safetensors, diffusers, diffusers_safetensors`.
     
-    Specify it like `--save_model_as=safetensors`. If you load a Stable Diffusion format (ckpt or safetensors) and save it in the Diffusers format, the missing information will be supplemented by downloading v1.5 or v2.1 information from Hugging Face.
+    Specify it as `--save_model_as=safetensors`. If you load a Stable Diffusion format (ckpt or safetensors) and save it in the Diffusers format, the missing information will be supplemented by downloading the v1.5 or v2.1 information from Hugging Face.
 
 - `--huggingface_repo_id` etc.
 
-    If `huggingface_repo_id` is specified, the model will be uploaded to HuggingFace at the same time as saving. Please be careful when handling access tokens (refer to HuggingFace's documentation).
+    If a huggingface_repo_id is specified, the model will be uploaded to HuggingFace at the same time as it is saved. Please be careful with the handling of access tokens (refer to HuggingFace's documentation).
 
-    Specify other arguments like this:
+    Specify other arguments as follows:
 
-    -   `--huggingface_repo_id "your-hf-name/your-model" --huggingface_path_in_repo "path" --huggingface_repo_type model --huggingface_repo_visibility private --huggingface_token hf_YourAccessTokenHere`
+    - `--huggingface_repo_id "your-hf-name/your-model" --huggingface_path_in_repo "path" --huggingface_repo_type model --huggingface_repo_visibility private --huggingface_token hf_YourAccessTokenHere`
+
+    If you specify `public` for huggingface_repo_visibility, the repository will be published. If omitted or specified as `private` (or anything other than public), it will be private.
+
+    If you specify the `--save_state` option and also specify `--save_state_to_huggingface`, the state will be uploaded.
+
+    If you specify the `--resume` option and also specify `--resume_from_huggingface`, the state will be downloaded from HuggingFace and resumed. At that time, the `--resume` option will be `--resume {repo_id}/{path_in_repo}:{revision}:{repo_type}`.
+
+    Example: `--resume_from_huggingface --resume your-hf-name/your-model/path/test-000002-state:main:model`
+
+    If you specify the `--async_upload` option, the upload will be asynchronous.
+
+## Optimizer-related
+
+- `--optimizer_type`
+
+    Specify the type of optimizer. The following can be specified:
+    - AdamW: [torch.optim.AdamW](https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html)
+    - Same as the unspecified option in previous versions
+    - AdamW8bit: Same arguments as above
+    - Same as the --use_8bit_adam option in previous versions
+    - Lion: https://github.com/lucidrains/lion-pytorch
+    - Same as the --use_lion_optimizer option in previous versions
+    - Lion8bit: Same arguments as above
+    - SGDNesterov: [torch.optim.SGD](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html), nesterov=True
+    - SGDNesterov8bit: Same arguments as above
+    - DAdaptation(DAdaptAdam): https://github.com/facebookresearch/dadaptation
+    - DAdaptAdaGrad: Same arguments as above
+    - DAdaptAdan: Same arguments as above
+    - DAdaptSGD: Same arguments as above
+    - AdaFactor: [Transformers AdaFactor](https://huggingface.co/docs/transformers/main_classes/optimizer_schedules)
+    - Any optimizer
+
+- `--learning_rate`
+
+    Specify the learning rate. The appropriate learning rate depends on the training script, so please refer to each description.
+
+- `--lr_scheduler` / `--lr_warmup_steps` / `--lr_scheduler_num_cycles` / `--lr_scheduler_power`
+
+    These are the specifications for learning rate scheduler-related options.
+
+    With the lr_scheduler option, you can choose the learning rate scheduler from linear, cosine, cosine_with_restarts, polynomial, constant, constant_with_warmup, or any scheduler. The default is constant.
+
+    With lr_warmup_steps, you can specify the number of warm-up steps for the scheduler.
+
+    lr_scheduler_num_cycles is the number of restarts for the cosine with restarts scheduler, and lr_scheduler_power is the polynomial power for the polynomial scheduler.
+
+    For more details, please do your own research.
+
+    To use any scheduler, specify the optional arguments with `--scheduler_args`, as with any optimizer.
+
+### Specifying the optimizer
+
+Specify the optional arguments for the optimizer with the --optimizer_args option. You can specify multiple values in the key=value format, and multiple values can be specified for the value, separated by commas. For example, to specify arguments for the AdamW optimizer, use `--optimizer_args weight_decay=0.01 betas=.9,.999`.
+
+When specifying optional arguments, please check the specifications of each optimizer.
+
+Some optimizers have required arguments that are automatically added if omitted (such as the momentum for SGDNesterov). Please check the console output.
+
+The D-Adaptation optimizer automatically adjusts the learning rate. The value specified for the learning rate option is not the learning rate itself, but the application rate of the learning rate determined by D-Adaptation, so normally specify 1.0. If you want to specify half the learning rate for the Text Encoder and the full learning rate for U-Net, use `--text_encoder_lr=0.5 --unet_lr=1.0`.
+
+The AdaFactor optimizer can automatically adjust the learning rate by specifying relative_step=True (added by default when omitted). When adjusting automatically, the adafactor_scheduler is forcibly used for the learning rate scheduler. Also, it seems to be good to specify scale_parameter and warmup_init.
+
+When adjusting automatically, the option specification is like `--optimizer_args "relative_step=True" "scale_parameter=True" "warmup_init=True"`.
+
+If you do not want to adjust the learning rate automatically, add the optional argument `relative_step=False`. In that case, it is recommended to use constant_with_warmup for the learning rate scheduler and not to clip the gradient norm. Therefore, the arguments are like `--optimizer_type=adafactor --optimizer_args "relative_step=False" --lr_scheduler="constant_with_warmup" --max_grad_norm=0.0`.
+
+### Using any optimizer
+
+If you want to use an optimizer from `torch.optim`, specify only the class name (e.g. `--optimizer_type=RMSprop`) or use the "module name.class name" (e.g. `--optimizer_type=bitsandbytes.optim.lamb.LAMB`) for optimizers from other modules.
+
+(Only importlib is used internally, and the operation is unconfirmed. Please install the necessary packages if needed.)
+
+# Creating metadata files
+
+## Preparing teacher data
+
+As previously mentioned, prepare the image data you want to train and put it in any folder.
+
+For example, store the images as follows:
+
+![Folder of teacher data](https://user-images.githubusercontent.com/52813779/208907739-8e89d5fa-6ca8-4b60-8927-f484d2a9ae04.png)
+
+## Automatic captioning
+
+Skip this step if you are training with tags only and not using captions.
+
+If you are preparing captions manually, put the captions in the same directory as the teacher data images, with the same file name and a .caption extension. Each file should be a single-line text file.
+
+### Captioning with BLIP
+
+In the latest version, downloading BLIP, downloading weights, and adding a virtual environment are no longer necessary. It works as is.
+
+Run the make_captions.py script in the finetune folder.
+
+```
+python finetune\make_captions.py --batch_size <batch_size> <teacher_data_folder>
+```
+
+If the batch size is 8 and the teacher data is placed in the parent folder train_data, it will look like this:
+
+```
+python finetune\make_captions.py --batch_size 8 ..\train_data
+```
+
+The caption files will be created in the same directory as the training data images, with the same file name and a ".caption" extension.
+
+Adjust the batch size according to your GPU's VRAM capacity. A larger batch size will speed up the process (it can be increased further for VRAM 12GB). You can specify the maximum length of captions using the "max_length" option. The default is 75, but you may want to increase it if you are training the model with a token length of 225. You can also change the caption file extension using the "caption_extension" option. The default is ".caption" (changing it to ".txt" may cause conflicts with DeepDanbooru mentioned later).
+
+If you have multiple training data folders, run the command for each folder separately.
+---CUT---
