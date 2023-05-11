@@ -12,6 +12,6 @@ All checkpoints are in the safetensor format and saved as float32. The interpola
 
 OpenGen is an ongoing project, and I welcome any contributions or feedback from the community. I hope that this project can help advance the field of AI and provide valuable insights into deep learning techniques.
 
-This repository contains:
+## This repository contains:
 
 * [kohya-ss DreamBooth training guide in english](./docs/fine_tune_README.md)
