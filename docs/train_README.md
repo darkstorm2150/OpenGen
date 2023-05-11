@@ -1,3 +1,5 @@
+This a ChatGPT-4 English Conversion of kohya-ss (train_README-ja.md)
+
 There may be errors in the description due to document updates.
 
 # Common Learning Guide
