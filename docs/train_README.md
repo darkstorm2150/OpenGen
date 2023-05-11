@@ -625,4 +625,5 @@ The caption files will be created in the same directory as the training data ima
 Adjust the batch size according to your GPU's VRAM capacity. A larger batch size will speed up the process (it can be increased further for VRAM 12GB). You can specify the maximum length of captions using the "max_length" option. The default is 75, but you may want to increase it if you are training the model with a token length of 225. You can also change the caption file extension using the "caption_extension" option. The default is ".caption" (changing it to ".txt" may cause conflicts with DeepDanbooru mentioned later).
 
 If you have multiple training data folders, run the command for each folder separately.
+    
 ---CUT---
