@@ -1,12 +1,10 @@
+## <p align="center">This repository contains training data for Stable Diffusion.</p>
 
-<p align="left">
-  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256" style="border-radius: 8%; border: 30px solid #4285F4; box-shadow: 0 0 10px #4285F4;">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
 </p>
 
-
-This repository contains training data for Stable Diffusion.
-
-#### About OpenGen Project
+<h3><p align="center">About OpenGen Project</p></h3>
 
 OpenGen is an AI project focused on creating high-quality images through Stable Diffusion, a deep learning technique that leverages neural networks to generate realistic images. The project aims to provide an open-source solution for researchers and developers to experiment with and build upon.
 
@@ -17,6 +15,7 @@ OpenGen v1.0 is the result of consolidating all previous Protogen versions.
 All checkpoints are in the safetensor format and saved as float32. The interpolation method used is a weighted sum, and the multiplier (M) is set to 0.95 for the final versions.
 
 OpenGen is an ongoing project, and I welcome any contributions or feedback from the community. I hope that this project can help advance the field of AI and provide valuable insights into deep learning techniques.
+
 
 ## This repository contains:
 
