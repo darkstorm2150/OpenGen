@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="690" style="border-radius: 8%; border: 10px solid #663380; padding-top:0px;">
+  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256" style="border-radius: 8%; border: 30px solid #4285F4; box-shadow: 0 0 10px #4285F4;">
 </p>
 
 
