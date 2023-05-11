@@ -64,7 +64,7 @@ For DreamBooth, the same applies, but the fine-tuning method cannot be used. In 
 
 # How to specify each method
 
-Here, only typical patterns for each specification method are explained. For more detailed specification methods, please see [Dataset Configuration](./config_README-ja.md).
+Here, only typical patterns for each specification method are explained. For more detailed specification methods, please see [Dataset Configuration](./config_README.md).
 
 # DreamBooth, class+identifier method (regularization images can be used)
 
