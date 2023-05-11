@@ -102,19 +102,45 @@ Specify resolution and batch size as options. An example of the command line is 
 
 ```
 accelerate launch --num_cpu_threads_per_process 1 train_db.py 
-    --pretrained_model_name_or_path=<.ckpt or .safetensord or Diffusers model directory> 
-    --train_data_dir=<learning data directory> 
-    --reg_data_dir=<regularization image directory> 
-    --output_dir=<output directory for the learned model> 
-    --output_name=<file name when outputting the learned model> 
-    --prior_loss_weight=1.0 
-    --resolution=512 
-    --train_batch_size=1 
-    --learning_rate=1e-6 
-    --max_train_steps=1600 
-    --use_8bit_adam 
-    --xformers 
-    --mixed_precision="bf16" 
+    --pretrained_model_name_or_path=<.ckpt or .safetensors or Diffusers version model directory>
+    --train_data_dir=<training data directory>
+    --reg_data_dir=<regularization images directory>
+    --output_dir=<trained model output directory>
+    --output_name=<trained model output filename>
+    --prior_loss_weight=1.0
+    --resolution=512
+    --train_batch_size=1
+    --learning_rate=1e-6
+    --max_train_steps=1600
+    --use_8bit_adam
+    --xformers
+    --mixed_precision="bf16"
     --cache_latents
     --gradient_checkpointing
 ```
+
+## Generating images with the trained model
+
+Once the training is complete, a safetensors file will be output in the specified folder with the specified name.
+
+For v1.4/1.5 and other derivative models, you can infer with this model using Automatic1111's WebUI. Please place it in the models\Stable-diffusion folder.
+
+To generate images with the v2.x model in the WebUI, a separate .yaml file describing the model specifications is required. For the v2.x base, place the v2-inference.yaml in the same folder, and for the 768/v, place the v2-inference-v.yaml in the folder, and name the part before the extension the same as the model.
+
+![image](https://user-images.githubusercontent.com/52813779/210776915-061d79c3-6582-42c2-8884-8b91d2f07313.png)
+
+Each yaml file can be found in the [Stability AI's SD2.0 repository](https://github.com/Stability-AI/stablediffusion/tree/main/configs/stable-diffusion).
+
+# Other major options specific to DreamBooth
+
+Please refer to the separate document for all options.
+
+## Do not train the Text Encoder from the middle --stop_text_encoder_training
+
+By specifying a number for the stop_text_encoder_training option, the Text Encoder training will not be performed after that step, and only the U-Net will be trained. In some cases, this may lead to improved accuracy.
+
+(It is suspected that the Text Encoder alone may overfit first, and this option may help prevent that, but the exact impact is unknown.)
+
+## Do not pad the Tokenizer output --no_token_padding
+
+By specifying the no_token_padding option, the output of the Tokenizer will not be padded (this is the same behavior as the old DreamBooth of the Diffusers version).
