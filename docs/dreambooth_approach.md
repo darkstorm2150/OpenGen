@@ -1,4 +1,8 @@
-# Understanding the DreamBooth Approach
+## <p align="center">Understanding the DreamBooth Approach</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/darkstorm2150/OpenGen/main/OpenGen%20Logo-768.jpg" alt="ALT_TEXT" height="256">
+</p>
 
 Welcome to the exciting world of Stable Diffusion Models! If you're new here, don't worry; we're going to walk you through the innovative DreamBooth approach, introduced by Kohya-ss. This guide aims to provide a comprehensive introduction to the subject, enabling you to understand and implement this method with confidence.
 
