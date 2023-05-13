@@ -21,13 +21,5 @@ OpenGen is an ongoing project, and I welcome any contributions or feedback from 
 This repository is a comprehensive guide to understanding, implementing, and fine-tuning Stable Diffusion Models. It presents the DreamBooth approach, as introduced by Kohya-ss.
 
 ## Table of Contents:
-
-1. [Introduction to Stable Diffusion Models](./docs/intro_stable_diffusion_models.md)
-2. [Understanding the DreamBooth Approach](./docs/dreambooth_approach.md)
-3. [Kohya-ss's Guide to Training Stable Diffusion Models: The DreamBooth Approach in English](./docs/fine_tune_README.md)
-4. [Implementing Stable Diffusion Models](./docs/implementing_stable_diffusion.md)
-5. [Fine-tuning Techniques for Stable Diffusion Models](./docs/fine_tuning_techniques.md)
-6. [Advanced Topics in Stable Diffusion Models](./docs/advanced_stable_diffusion.md)
-7. [Troubleshooting and FAQs](./docs/troubleshooting_FAQs.md)
-8. [Resources and Further Reading](./docs/resources_further_reading.md)
+1. [Kohya-ss's Guide to Training Stable Diffusion Models: The DreamBooth Approach in English](https://github.com/darkstorm2150/sd-scripts/blob/main/docs/fine_tune_README-en.md)
 
